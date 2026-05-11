@@ -53,7 +53,7 @@ st.markdown("<h1>📊 Smart Stock Dashboard</h1>", unsafe_allow_html=True)
 
 @st.cache_data
 def load_symbols():
-    url = "https://archives.nseindia.com/content/indices/ind_nifty500list.csv"
+    url = "https://archives.bseindia.com/content/indices/ind_nifty500list.csv"
     df = pd.read_csv(url)
     return [s + ".NS" for s in df["Symbol"].tolist()]
 
