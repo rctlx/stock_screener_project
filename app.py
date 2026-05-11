@@ -53,7 +53,7 @@ st.markdown("<h1>📊 Smart Stock Dashboard</h1>", unsafe_allow_html=True)
 
 @st.cache_data
 def load_symbols():
-    url = "https://archives.bseindia.com/content/indices/ind_nifty500list.csv"
+    url = "https://archives.nseindia.com/content/indices/ind_nifty500list.csv"
     df = pd.read_csv(url)
     return [s + ".NS" for s in df["Symbol"].tolist()]
 
@@ -67,7 +67,7 @@ stocks = load_symbols()
 def load_data(stocks):
     data = []
 
-    for symbol in stocks[:80]:  # performance balance
+    for symbol in stocks[:50]:  # performance balance
         try:
             stock = yf.Ticker(symbol)
             info = stock.info
