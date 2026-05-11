@@ -1,4 +1,3 @@
-
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -109,7 +108,7 @@ if selected_sector != "All":
 # ==========================
 
 
-col1, col2 = st.columns(4)
+col1, col2 = st.columns(2)
 col1.metric("Total Stocks", len(df))
 col2.metric("Sectors", df["Sector"].nunique())
 
