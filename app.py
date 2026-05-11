@@ -108,9 +108,11 @@ if selected_sector != "All":
 # ✅ Metrics (Top cards)
 # ==========================
 
-col1 = st.columns(4)
 
+col1, col2 = st.columns(4)
 col1.metric("Total Stocks", len(df))
+col2.metric("Sectors", df["Sector"].nunique())
+
 # ==========================
 # ✅ Format data
 # ==========================
