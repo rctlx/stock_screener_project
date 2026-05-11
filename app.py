@@ -97,20 +97,21 @@ st.sidebar.header("🔍 Filters")
 if not df.empty and "Sector" in df.columns:
     sectors = df["Sector"].dropna().unique()
 
-    selected_sector = st.sidebar.selectbox(
-        "Select Sector",
-        ["All"] + list(sectors)
+    selected_sectors = st.sidebar.multiselect(
+        "Select Sector(s)",
+        options=list(sectors),
+        default=list(sectors) # Pre-select all sectors by default
     )
 
-    if selected_sector != "All":
-        df = df[df["Sector"] == selected_sector]
+    if selected_sectors: # Only filter if some sectors are actually selected
+        df = df[df["Sector"].isin(selected_sectors)]
 else:
     st.sidebar.warning("Unable to load stock data or 'Sector' information is missing.")
     # If df is empty or 'Sector' is missing, then we should prevent further errors
     # by ensuring df is an empty DataFrame with the expected columns for later use.
     # This will cause the rest of the display to show empty data gracefully.
     df = pd.DataFrame(columns=["Stock", "Name", "Sector", "Price", "52W High", "52W Low", "P/E"])
-    selected_sector = "All"
+    selected_sectors = [] # Initialize as empty list to avoid errors if no data
 
 # ==========================
 # ✅ Metrics (Top cards)
