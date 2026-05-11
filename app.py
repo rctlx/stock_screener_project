@@ -59,14 +59,6 @@ if selected_sector != "All":
 else:
     filtered_df = df
 
-st.subheader("📈 Stocks in Selected Sector")
-
-st.dataframe(
-    filtered_df,
-    use_container_width=True,  # ✅ makes table full width
-    height=600                 # ✅ increases table height
-)
-
 # ==========================
 # ✅ DISPLAY TABLE
 # ==========================
@@ -74,6 +66,7 @@ st.dataframe(
 st.subheader("📈 Stocks in Selected Sector")
 
 st.dataframe(
-    filtered_df.sort_values("Last Price", ascending=False),
-    use_container_width=True
+    filtered_df,
+    use_container_width=True,  # ✅ makes table full width
+    height=600                 # ✅ increases table height
 )
