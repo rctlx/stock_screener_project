@@ -3,9 +3,54 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 
-st.title("📊 Sector-Based Stock Viewer (Nifty 500)")
+# ✅ Page config (important)
+st.set_page_config(
+    layout="wide",
+    page_title="Stock Dashboard",
+)
 
-# ✅ Load Nifty 500
+# ✅ Custom styling (Zerodha-like clean UI)
+st.markdown("""
+<style>
+body {
+    background-color: #0e1117;
+}
+
+/* Title */
+h1 {
+    text-align: center;
+}
+
+/* Metric cards */
+.metric-card {
+    padding: 15px;
+    border-radius: 10px;
+    background-color: #1a1f2b;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+/* Table styling */
+.stDataFrame {
+    font-size: 15px;
+}
+
+/* Hover highlight */
+tr:hover {
+    background-color: #2a2f3a;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ==========================
+# Title
+# ==========================
+st.markdown("<h1>📊 Smart Stock Dashboard</h1>", unsafe_allow_html=True)
+
+# ==========================
+# Load Nifty 500 symbols
+# ==========================
+
 @st.cache_data
 def load_symbols():
     url = "https://archives.nseindia.com/content/indices/ind_nifty500list.csv"
@@ -14,14 +59,15 @@ def load_symbols():
 
 stocks = load_symbols()
 
-st.write(f"Loaded {len(stocks)} stocks")
+# ==========================
+# Fetch data
+# ==========================
 
-# ✅ Load stock data with extra fields
 @st.cache_data
 def load_data(stocks):
     data = []
 
-    for symbol in stocks[:100]:   # limit for speed
+    for symbol in stocks[:80]:  # performance balance
         try:
             stock = yf.Ticker(symbol)
             info = stock.info
@@ -30,7 +76,7 @@ def load_data(stocks):
                 "Stock": symbol,
                 "Name": info.get("longName"),
                 "Sector": info.get("sector"),
-                "Last Price": info.get("currentPrice"),
+                "Price": info.get("currentPrice"),
                 "52W High": info.get("fiftyTwoWeekHigh"),
                 "52W Low": info.get("fiftyTwoWeekLow"),
                 "P/E": info.get("trailingPE")
@@ -43,33 +89,62 @@ def load_data(stocks):
 df = load_data(stocks)
 
 # ==========================
-# ✅ DROPDOWN FILTER
+# Sidebar Filters
 # ==========================
+
+st.sidebar.header("🔍 Filters")
 
 sectors = df["Sector"].dropna().unique()
 
-selected_sector = st.selectbox(
+selected_sector = st.sidebar.selectbox(
     "Select Sector",
     ["All"] + list(sectors)
 )
 
-# ✅ Apply filter
 if selected_sector != "All":
-    filtered_df = df[df["Sector"] == selected_sector]
-else:
-    filtered_df = df
+    df = df[df["Sector"] == selected_sector]
 
 # ==========================
-# ✅ DISPLAY TABLE
+# ✅ Metrics (Top cards)
 # ==========================
 
-with st.expander("🔍 Expand full table"):
-    st.dataframe(filtered_df, use_container_width=True, height=700)
+col1, col2, col3, col4 = st.columns(4)
 
-st.subheader("📈 Stocks in Selected Sector")
+col1.metric("Total Stocks", len(df))
+col2.metric("Avg Price", round(df["Price"].mean(), 2))
+col3.metric("Avg P/E", round(df["P/E"].mean(), 2))
+col4.metric("Sectors", df["Sector"].nunique())
+
+# ==========================
+# ✅ Format data
+# ==========================
+
+df["Price"] = df["Price"].round(2)
+df["52W High"] = df["52W High"].round(2)
+df["52W Low"] = df["52W Low"].round(2)
+
+# ✅ Optional: add % from high (very useful)
+df["% from High"] = ((df["Price"] / df["52W High"]) - 1) * 100
+
+# ==========================
+# ✅ Sorting options
+# ==========================
+
+sort_by = st.selectbox(
+    "Sort By",
+    ["Price", "P/E", "% from High"]
+)
+
+df = df.sort_values(sort_by, ascending=False)
+
+# ==========================
+# ✅ Big table display
+# ==========================
+
+st.subheader("📈 Stocks")
 
 st.dataframe(
-    filtered_df,
-    use_container_width=True,  # ✅ makes table full width
-    height=600                 # ✅ increases table height
+    df,
+    use_container_width=True,
+    height=600
 )
