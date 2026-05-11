@@ -67,7 +67,7 @@ stocks = load_symbols()
 def load_data(stocks):
     data = []
 
-    for symbol in stocks[:50]:  # performance balance
+    for symbol in stocks[:150]:  # performance balance
         try:
             stock = yf.Ticker(symbol)
             info = stock.info
@@ -108,13 +108,9 @@ if selected_sector != "All":
 # ✅ Metrics (Top cards)
 # ==========================
 
-col1, col2, col3, col4 = st.columns(4)
+col1 = st.columns(4)
 
 col1.metric("Total Stocks", len(df))
-col2.metric("Avg Price", round(df["Price"].mean(), 2))
-col3.metric("Avg P/E", round(df["P/E"].mean(), 2))
-col4.metric("Sectors", df["Sector"].nunique())
-
 # ==========================
 # ✅ Format data
 # ==========================
@@ -146,5 +142,5 @@ st.subheader("📈 Stocks")
 st.dataframe(
     df,
     use_container_width=True,
-    height=600
+    height=500
 )
