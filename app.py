@@ -93,15 +93,24 @@ df = load_data(stocks)
 
 st.sidebar.header("🔍 Filters")
 
-sectors = df["Sector"].dropna().unique()
+# Check if df is not empty and 'Sector' column exists
+if not df.empty and "Sector" in df.columns:
+    sectors = df["Sector"].dropna().unique()
 
-selected_sector = st.sidebar.selectbox(
-    "Select Sector",
-    ["All"] + list(sectors)
-)
+    selected_sector = st.sidebar.selectbox(
+        "Select Sector",
+        ["All"] + list(sectors)
+    )
 
-if selected_sector != "All":
-    df = df[df["Sector"] == selected_sector]
+    if selected_sector != "All":
+        df = df[df["Sector"] == selected_sector]
+else:
+    st.sidebar.warning("Unable to load stock data or 'Sector' information is missing.")
+    # If df is empty or 'Sector' is missing, then we should prevent further errors
+    # by ensuring df is an empty DataFrame with the expected columns for later use.
+    # This will cause the rest of the display to show empty data gracefully.
+    df = pd.DataFrame(columns=["Stock", "Name", "Sector", "Price", "52W High", "52W Low", "P/E"])
+    selected_sector = "All"
 
 # ==========================
 # ✅ Metrics (Top cards)
