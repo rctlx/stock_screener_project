@@ -5,24 +5,23 @@ import pandas as pd
 
 st.title("📊 Sector-Based Stock Viewer (Nifty 500)")
 
-# ✅ Load Nifty 500 automatically
+# ✅ Load Nifty 500
 @st.cache_data
 def load_symbols():
     url = "https://archives.nseindia.com/content/indices/ind_nifty500list.csv"
     df = pd.read_csv(url)
-    symbols = df["Symbol"].tolist()
-    return [s + ".NS" for s in symbols]
+    return [s + ".NS" for s in df["Symbol"].tolist()]
 
 stocks = load_symbols()
 
 st.write(f"Loaded {len(stocks)} stocks")
 
-# ✅ Fetch stock info
+# ✅ Load stock data with extra fields
 @st.cache_data
 def load_data(stocks):
     data = []
 
-    for symbol in stocks[:150]:   # ⚠️ limit for speed (can increase later)
+    for symbol in stocks[:100]:   # limit for speed
         try:
             stock = yf.Ticker(symbol)
             info = stock.info
@@ -30,7 +29,11 @@ def load_data(stocks):
             data.append({
                 "Stock": symbol,
                 "Name": info.get("longName"),
-                "Sector": info.get("sector")
+                "Sector": info.get("sector"),
+                "Last Price": info.get("currentPrice"),
+                "52W High": info.get("fiftyTwoWeekHigh"),
+                "52W Low": info.get("fiftyTwoWeekLow"),
+                "P/E": info.get("trailingPE")
             })
         except:
             continue
@@ -39,7 +42,10 @@ def load_data(stocks):
 
 df = load_data(stocks)
 
-# ✅ Dropdown
+# ==========================
+# ✅ DROPDOWN FILTER
+# ==========================
+
 sectors = df["Sector"].dropna().unique()
 
 selected_sector = st.selectbox(
@@ -47,12 +53,19 @@ selected_sector = st.selectbox(
     ["All"] + list(sectors)
 )
 
-# ✅ Filter
+# ✅ Apply filter
 if selected_sector != "All":
     filtered_df = df[df["Sector"] == selected_sector]
 else:
     filtered_df = df
 
-# ✅ Show results
+# ==========================
+# ✅ DISPLAY TABLE
+# ==========================
+
 st.subheader("📈 Stocks in Selected Sector")
-st.dataframe(filtered_df)
+
+st.dataframe(
+    filtered_df.sort_values("Last Price", ascending=False),
+    use_container_width=True
+)
