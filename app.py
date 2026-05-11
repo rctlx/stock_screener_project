@@ -3,42 +3,43 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 
-st.title("📊 Sector-Based Stock Screener")
+st.title("📊 Sector-Based Stock Viewer (Nifty 500)")
 
-stocks = [
-    "RELIANCE.NS","TCS.NS","INFY.NS",
-    "HDFCBANK.NS","SBIN.NS","ITC.NS",
-    "LT.NS","BAJFINANCE.NS","AXISBANK.NS"
-]
-
-# Load data
+# ✅ Load Nifty 500 automatically
 @st.cache_data
-def load_data():
-    results = []
+def load_symbols():
+    url = "https://archives.nseindia.com/content/indices/ind_nifty500list.csv"
+    df = pd.read_csv(url)
+    symbols = df["Symbol"].tolist()
+    return [s + ".NS" for s in symbols]
 
-    for symbol in stocks:
+stocks = load_symbols()
+
+st.write(f"Loaded {len(stocks)} stocks")
+
+# ✅ Fetch stock info
+@st.cache_data
+def load_data(stocks):
+    data = []
+
+    for symbol in stocks[:150]:   # ⚠️ limit for speed (can increase later)
         try:
             stock = yf.Ticker(symbol)
             info = stock.info
 
-            results.append({
+            data.append({
                 "Stock": symbol,
-                "Sector": info.get("sector"),
-                "P/E": info.get("trailingPE"),
-                "ROE (%)": info.get("returnOnEquity"),
-                "Debt": info.get("debtToEquity")
+                "Name": info.get("longName"),
+                "Sector": info.get("sector")
             })
         except:
             continue
 
-    return pd.DataFrame(results)
+    return pd.DataFrame(data)
 
-df = load_data()
+df = load_data(stocks)
 
-# ==========================
-# ✅ SECTOR FILTER (Dropdown)
-# ==========================
-
+# ✅ Dropdown
 sectors = df["Sector"].dropna().unique()
 
 selected_sector = st.selectbox(
@@ -46,29 +47,12 @@ selected_sector = st.selectbox(
     ["All"] + list(sectors)
 )
 
-# Apply filter
+# ✅ Filter
 if selected_sector != "All":
-    df = df[df["Sector"] == selected_sector]
+    filtered_df = df[df["Sector"] == selected_sector]
+else:
+    filtered_df = df
 
-# ==========================
-# Extra filters (optional)
-# ==========================
-
-st.sidebar.header("Advanced Filters")
-
-min_roe = st.sidebar.slider("Min ROE (%)", 0, 50, 15)
-max_pe = st.sidebar.slider("Max P/E", 5, 100, 40)
-max_debt = st.sidebar.slider("Max Debt", 0.0, 2.0, 1.0)
-
-df = df[
-    (df["ROE (%)"] > min_roe/100) &
-    (df["P/E"] < max_pe) &
-    (df["Debt"] < max_debt)
-]
-
-# ==========================
-# Display
-# ==========================
-
-st.subheader("📈 Filtered Stocks")
-st.dataframe(df.sort_values("ROE (%)", ascending=False))
+# ✅ Show results
+st.subheader("📈 Stocks in Selected Sector")
+st.dataframe(filtered_df)
