@@ -63,6 +63,9 @@ else:
 # ✅ DISPLAY TABLE
 # ==========================
 
+with st.expander("🔍 Expand full table"):
+    st.dataframe(filtered_df, use_container_width=True, height=700)
+
 st.subheader("📈 Stocks in Selected Sector")
 
 st.dataframe(
